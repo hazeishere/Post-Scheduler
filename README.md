@@ -1,94 +1,67 @@
-# Post Scheduler
+# Social Media Post Scheduler
 
-A simple project to queue and publish posts with specific timing requirements using Python, Flask, and Redis.
-
-## Features
-- Schedule posts for future publishing
-- Queue management using Redis
-- REST API for scheduling and status
-- Worker process to publish posts at the right time
-
-## Project Structure
-- `config.py` - Centralized configuration settings
-- `redis_client.py` - Shared Redis client instance
-- `posts.py` - Core post scheduling functionality
-- `producer.py` - Adds tasks to the queue and checks status
-- `worker.py` - Processes tasks from the queue
-- `app.py` - Flask API for interacting with the system
+A simple Flask API that allows scheduling social media posts using Redis as a task queue.
 
 ## Setup
 
-1. **Install dependencies:**
-   ```bash
+1. Make sure you have Python 3.8+ installed
+2. Install Redis on your system
+3. Install dependencies:
+   ```
    pip install -r requirements.txt
    ```
-
-2. **Start Redis server:**
-   Make sure you have Redis running locally (default: localhost:6379).
-
-3. **Run the Flask app:**
-   ```bash
+4. Start the Redis server
+5. Run the application:
+   ```
    python app.py
    ```
 
-4. **Start the worker in another terminal:**
-   ```bash
-   python worker.py
-   ```
-
-## API Usage
+## API Endpoints
 
 ### Schedule a Post
-- **POST** `/schedule`
-- **Body:**
-  ```json
-  {
-    "post_data": {"content": "Hello, world!", "platform": "twitter"},
-    "schedule_time": "2024-03-20T15:30:00"
-  }
-  ```
-- **Response:**
-  ```json
-  {"task_id": "..."}
-  ```
 
-### Check Queue Status
-- **GET** `/queue_status`
-- **Response:**
-  ```json
-  {
-    "task_queue": 1,
-    "completed_queue": 0,
-    "failed_queue": 0, 
-    "scheduled_posts": 1
-  }
-  ```
-
-### Check Post Status
-- **GET** `/post_status/<task_id>`
-- **Response:**
-  ```json
-  {
-    "id": "...",
-    "content": "Hello, world!",
-    "platform": "twitter",
-    "schedule_time": "2024-03-20T15:30:00",
-    "status": "scheduled",
-    "created_at": "..."
-  }
-  ```
-
-## Command Line Usage
-You can also use the modules directly:
-
-```bash
-# Start the worker
-python worker.py
-
-# Check queue status
-python producer.py
+```
+POST /schedule
 ```
 
-## Notes
-- This is a learning/demo project. For production, use persistent storage for posts and add authentication.
-- The worker currently processes tasks as they are added to the queue. 
+Request body:
+```json
+{
+  "content": "Your post content here",
+  "platform": "twitter",
+  "scheduled_time": "2028-09-15T14:30:00"
+}
+```
+
+Supported platforms: twitter, facebook, instagram, linkedin
+
+### Get Scheduled Posts
+
+```
+GET /posts
+```
+
+Returns all currently scheduled posts.
+
+### Delete a Scheduled Post
+
+```
+DELETE /posts/{task_id}
+```
+
+Deletes a scheduled post with the given task ID.
+
+### Get Post History
+
+```
+GET /history
+```
+
+Returns the history of all posts that have been processed.
+
+## How It Works
+
+1. The app uses a Redis sorted set to store scheduled posts with the scheduled time as the score
+2. A background worker thread continuously checks for posts that are due
+3. When a post is due, it's processed (posted to social media) and removed from the queue
+4. Post results are stored in Redis for history tracking 
