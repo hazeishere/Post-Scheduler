@@ -1,16 +1,20 @@
+"""
+Flask API for the post scheduler system.
+"""
+
 from flask import Flask, request, jsonify
-from redis import Redis
 import os
-import uuid
 from datetime import datetime
 import json
 from producer import add_task, get_queue_status, get_post_status
-from worker import work
 
 app = Flask(__name__)
 
 @app.route('/schedule', methods=['POST'])
 def schedule():
+    """
+    Schedule a post to be published later
+    """
     data = request.json
     post_data = data.get('post_data')
     schedule_time = data.get('schedule_time')
@@ -24,11 +28,17 @@ def schedule():
 
 @app.route('/queue_status', methods=['GET'])
 def queue_status():
+    """
+    Get status of all queues
+    """
     status = get_queue_status()
     return jsonify(status)
 
 @app.route('/post_status/<post_id>', methods=['GET'])
 def post_status(post_id):
+    """
+    Get status of a specific post
+    """
     try:
         status = get_post_status(post_id)
         return jsonify(status)

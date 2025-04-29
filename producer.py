@@ -1,20 +1,20 @@
-#  Queue and publish posts with specific timing requirements.
+"""
+Producer module for adding tasks to the queue and checking their status.
+"""
 
-from redis import Redis
 import os
 import uuid
 from datetime import datetime
 import json
 from posts import PostScheduler
+from redis_client import client as redis_client
+from config import TASK_QUEUE, COMPLETED_QUEUE, FAILED_QUEUE
 
-redis_client = Redis(host='localhost', port=6379, db=0)
 post_scheduler = PostScheduler()
-
-TASK_QUEUE = 'task_queue'
 
 def add_task(task_data, schedule_time):
     """
-    Add a task to the regular queue
+    Add a task to the queue for later processing
     
     Args:
         task_data (dict): Post content and metadata
@@ -45,9 +45,16 @@ def add_task(task_data, schedule_time):
         raise
 
 def get_queue_status():
-    """Get the status of all queues"""
+    """
+    Get the status of all queues
+    
+    Returns:
+        dict: Queue status information
+    """
     status = {
         'task_queue': redis_client.llen(TASK_QUEUE),
+        'completed_queue': redis_client.llen(COMPLETED_QUEUE),
+        'failed_queue': redis_client.llen(FAILED_QUEUE),
         'scheduled_posts': len(post_scheduler.get_scheduled_posts())
     }
     return status
@@ -58,10 +65,22 @@ def print_queue_status():
     print(f"Queue status: {status}")
     
 def get_post_status(post_id):
-    """Get the status of a specific post"""
+    """
+    Get the status of a specific post
+    
+    Args:
+        post_id (str): The ID of the post
+        
+    Returns:
+        dict: Post status information
+    """
     try:
         return post_scheduler.get_post_status(post_id)
     except Exception as e:
         print(f"Failed to get post status: {str(e)}")
         raise
+
+if __name__ == "__main__":
+    print("Producer module - use this to add tasks or check status")
+    print_queue_status()
     

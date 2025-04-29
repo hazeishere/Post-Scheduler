@@ -1,5 +1,6 @@
-# replace with actual logic to schedule posts
-# this is a simulation of the logic
+"""
+Post scheduling and publishing core functionality.
+"""
 
 import time
 from datetime import datetime
@@ -7,7 +8,12 @@ import json
 import uuid
 
 class PostScheduler:
+    """
+    Manages the scheduling and publishing of posts to various platforms.
+    """
+    
     def __init__(self):
+        """Initialize the post scheduler with an empty scheduled posts dict"""
         self.scheduled_posts = {}
 
     def schedule_post(self, post_data, schedule_time):
@@ -20,6 +26,10 @@ class PostScheduler:
             
         Returns:
             dict: Scheduled post information
+            
+        Raises:
+            ValueError: If schedule time is invalid
+            Exception: For other scheduling errors
         """
         try:
             # Convert schedule_time to datetime object
@@ -58,6 +68,10 @@ class PostScheduler:
             
         Returns:
             bool: True if post was published successfully
+            
+        Raises:
+            ValueError: If post ID is not found
+            Exception: For publishing errors
         """
         if post_id not in self.scheduled_posts:
             raise ValueError(f"Post {post_id} not found")
@@ -81,11 +95,27 @@ class PostScheduler:
             raise Exception(f"Failed to publish post: {str(e)}")
 
     def get_scheduled_posts(self):
-        """Get all scheduled posts"""
+        """
+        Get all scheduled posts
+        
+        Returns:
+            list: All scheduled posts
+        """
         return list(self.scheduled_posts.values())
 
     def get_post_status(self, post_id):
-        """Get the status of a specific post"""
+        """
+        Get the status of a specific post
+        
+        Args:
+            post_id (str): The ID of the post
+            
+        Returns:
+            dict: Post status information
+            
+        Raises:
+            ValueError: If post ID is not found
+        """
         if post_id not in self.scheduled_posts:
             raise ValueError(f"Post {post_id} not found")
         return self.scheduled_posts[post_id]

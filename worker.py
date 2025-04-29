@@ -1,19 +1,26 @@
-from redis import Redis
+"""
+Worker module that processes tasks from the Redis queue and publishes posts.
+"""
+
 import json
 import time
 from datetime import datetime
 from posts import PostScheduler
+from redis_client import client as redis_client
+from config import TASK_QUEUE, PROCESSING_QUEUE, COMPLETED_QUEUE, FAILED_QUEUE
 
-redis_client = Redis(host='localhost', port=6379, db=0)
 post_scheduler = PostScheduler()
 
-TASK_QUEUE = 'task_queue'
-PROCESSING_QUEUE = 'processing_queue'
-COMPLETED_QUEUE = 'completed_queue'
-FAILED_QUEUE = 'failed_queue'
-
 def process_task(task):
-    """Process a single task: publish the post using PostScheduler"""
+    """
+    Process a single task: publish the post using PostScheduler
+    
+    Args:
+        task (dict): Task data containing post information
+        
+    Returns:
+        dict: Processed task with updated status
+    """
     print(f"Processing task {task['id']}")
     try:
         # Actually publish the post
@@ -32,7 +39,9 @@ def process_task(task):
         return task
 
 def work():
-    """Main worker loop - continuously process tasks"""
+    """
+    Main worker loop - continuously process tasks from the queue
+    """
     print("Worker started. Waiting for tasks...")
     while True:
         result = redis_client.brpop(TASK_QUEUE, timeout=1)
@@ -50,4 +59,5 @@ def work():
         else:
             redis_client.lpush(FAILED_QUEUE, json.dumps(processed_task))
 
-    
+if __name__ == "__main__":
+    work()
